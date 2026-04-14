@@ -3,7 +3,7 @@
 <h3>🧑‍💻 Tech Stack</h3>
 <ul>
 <li>JavaScript</li>
-<li>CSS3</li>
+<li>CSS</li>
 <li>Tensorflow</li>
 </ul>
 
@@ -50,4 +50,4 @@ Your default browser will automatically open and display the index.html file. </
 <h3>💡 Tips</h3>
 When the simulation starts running, it might be zoomed in. For optimal performance and a smoother simulation experience, please ensure the entire simulation is visible in your browser window by zooming out until the full view is achieved.
 
-The simulation is designed with a unique feature to ensure only the best-performing boats contribute to future generations. On rare occasions, if the initial fleet of boats doesn't meet our high standards of performance (they cover very little distance in the first generation), the simulation will pause, causing the boats to disappear. This is our system's way of filtering out underperforming boats right from the start so that they don't reproduce. If this happens, simply refresh the page. This will reinitialise the simulation, granting the boats another opportunity to excel in the first generation. Consider it our way of ensuring quality right from the get-go!
+The simulation is designed with a unique feature to ensure only the best-performing boats contribute to future generations. On rare occasions, if the initial fleet of boats doesn't meet the performance requirement (they cover very little distance in the first generation), the simulation will pause, causing the boats to disappear. This is our system's way of filtering out underperforming boats right from the start so that they don't reproduce. If this happens, simply refresh the page. This will reinitialise the simulation, granting the boats another opportunity to excel in the first generation.
