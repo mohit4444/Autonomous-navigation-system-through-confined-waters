@@ -16,13 +16,13 @@ On Windows, use `py -m http.server 8000` if needed. Open [localhost:8000](http:/
 Training starts automatically with 100 boats on the training track. **Generation** counts completed rounds; **Best Distance** shows the highest recorded distance among selected boats. Zoom out to see the full track. Refreshing starts training again.
 If the boats keep circling,refresh.
 
-## Save the best model
+## Save the best model (trained boat)
 
 1. When the boats are covering substantial distance on the training track, then press **X** with the simulation window active.
 2. Allow multiple downloads if prompted. Keep **`best.json`** and **`best.weights.bin`** together, with their original filenames.
 
 
-## Load a model and test another route
+## Load the saved model and test it on a different water channel
 
 Copy both saved files into **`bestnetwork/`**, replacing the existing pair after backing it up. Or use the example model already there.
 
