@@ -2,6 +2,8 @@
 
 Train simulated boats to navigate a waterway, save their learned behaviour as a **model**, and test it on a new route.
 
+<img src="images/demo.png" alt="Boat navigating the simulated waterway, with distance and generation statistics below" width="400">
+
 ## Run
 
 1. Download this project (**Code → Download ZIP**) and extract it.
