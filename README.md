@@ -36,7 +36,7 @@ Make these two edits in **`sketch.js`**:
 track = loadImage('images/tracks/testing1.png');
 ```
 
-**2. Uncomment the commented `setup()` function to load the best neural network and comment the `setup()` above it.
+**2. Uncomment the commented `setup()` function to load the best neural network and comment the `setup()` above it.**
 
 Save this and restart the server.
 
