@@ -1,140 +1,115 @@
 # Autonomous navigation system through confined waters
 
-A browser simulation in which boats learn to navigate a track using a neural network and genetic selection. Each network receives the boat's angle and three obstacle sensor readings, then chooses a steering direction. The track image defines the environment; the network does not take an entire image as input.
+Watch simulated boats learn to steer through a waterway, save a promising boat's learned behaviour, and try it on another route. A **model** is the saved behaviour that controls a boat.
 
-Built with JavaScript, p5.js, TensorFlow.js, and CSS.
+This guide covers running the project and collecting results. Instructions for whoever sets it up are in [Loading setup and technical help](docs/setup-and-technical-help.md).
 
-## Run locally
+## 1. Start the simulation
 
-Clone the repository and serve it over HTTP:
+You need the project folder, Python 3, a web browser, and an internet connection. If someone has already set up and started the project for you, open [localhost:8000](http://localhost:8000).
+
+Otherwise:
+
+1. On this project's GitHub page, select **Code → Download ZIP**, then extract the downloaded folder.
+2. Open a terminal in the extracted folder containing `index.html`. On Windows, you can right-click inside the folder and select **Open in Terminal**.
+3. Enter the command below. On Windows, use `py -m http.server 8000` if `python3` is not recognised.
+4. Open [localhost:8000](http://localhost:8000) in your browser. Keep the terminal open while using the project.
 
 ```sh
-git clone https://github.com/mohit4444/Autonomous-navigation-system-through-confined-waters.git
-cd Autonomous-navigation-system-through-confined-waters
 python3 -m http.server 8000
 ```
 
-Open [localhost:8000](http://localhost:8000). Keep the server running while training or testing. Opening `index.html` directly with a `file://` URL can prevent images and model files from loading. Internet access is needed for the CDN scripts in `index.html`.
+The boats start learning automatically. Zoom out in your browser if you cannot see the whole waterway and the numbers underneath it. Opening `index.html` by double-clicking it is not enough to run the project reliably.
 
-Alternatively, serve the repository with Node.js (`npx http-server`), then open the address that server provides.
+## 2. Understand what you see
 
-## Train and export a model
+The simulation starts with 100 boats. When all boats in a round have stopped, a new round begins using variations of the better-performing boats' behaviour. Each round is called a **generation**.
 
-1. Start with the active `setup()` and `draw()` functions in [sketch.js](sketch.js). The default configuration creates 100 boats on `images/tracks/training.png` and mutates their networks between generations.
-2. Let at least one generation finish. Selection happens after all boats in the population die; the **Generation** counter then increases. Fitness depends on how long each boat survives.
-3. Wait until a boat has been selected as `best`. You can check `Boolean(best)` in the browser's developer console. Pressing **X** before this is true causes an error because there is no model to save yet.
-4. With the simulation page focused, press **X**. The existing `keyPressed()` handler calls `best.brain.model.save('downloads://best')`.
-5. Keep both downloaded files: `best.json` (network structure and weights reference) and `best.weights.bin` (learned weights). Allow multiple downloads if the browser prompts you. TensorFlow.js requires the matching pair to reload the model; see its [save/load guide](https://www.tensorflow.org/js/guide/save_load).
-6. Back up any model you want to keep, then copy both downloads into `bestnetwork/`, replacing the existing pair:
-
-```text
-bestnetwork/
-├── best.json
-└── best.weights.bin
-```
-
-The browser downloads files to your downloads folder; it does not update this repository automatically. If duplicate downloads acquire suffixes such as `(1)`, restore the filenames above and check that `weightsManifest[].paths` in `best.json` points to `best.weights.bin` (or `./best.weights.bin`). Always use files from the same export.
-
-**What “best” means:** `naturalSelection()` selects a boat using rounded fitness scores from the completed generation. The saved network is the most recently selected `best`, which is not necessarily the all-time distance record holder. **Best Distance** retains a historical maximum among selected boats, so that display can refer to an older model. Export a promising model before a later generation replaces it. The export contains the network only, not the population, generation counter, or track.
-
-A saved model is already included in [bestnetwork/](bestnetwork/), so you can also try the next section without training first.
-
-## Try the saved model on a different image
-
-The repository includes two alternative tracks: [testing1.png](images/tracks/testing1.png) and [testing2.png](images/tracks/testing2.png). Use the following temporary edits to `sketch.js` for a single-boat evaluation that keeps the saved weights fixed. Save a copy of your training version of `sketch.js` first so you can restore it later.
-
-### 1. Choose the track
-
-In `preload()`, change only the track path:
-
-```js
-function preload() {
-  track = loadImage('images/tracks/testing1.png');
-  boatImg = loadImage('boat.png');
-}
-```
-
-### 2. Load the exported network
-
-Replace the active `setup()` with the following function. Keep only one active `setup()`; leave the old commented loading example disabled.
-
-```js
-async function setup() {
-  createCanvas(1100, 2100);
-  pixelDensity(1); // Sensor indexing assumes one pixel per canvas coordinate.
-  noLoop(); // Wait for the saved network before starting the simulation.
-
-  try {
-    await tf.setBackend('cpu');
-    const model = await tf.loadLayersModel('bestnetwork/best.json');
-    const boat = new Boat();
-    boat.brain.model.dispose(); // Release the unused random network.
-    boat.brain.model = model;
-    population = [boat];
-    loop();
-  } catch (error) {
-    console.error('Could not load the saved model:', error);
-  }
-}
-```
-
-The model URL is relative to the served `index.html`. TensorFlow.js reads the JSON and fetches the weights file named in its manifest.
-
-### 3. Disable selection and mutation during evaluation
-
-Replace the active `draw()` with this evaluation version as well. Merely loading the model with the original `draw()` would continue selection and mutation after the boats die.
-
-```js
-function draw() {
-  // p5 can draw once before the asynchronous setup has finished.
-  if (population.length === 0) return;
-
-  background(147, 204, 76);
-  image(track, 0, 0);
-  loadPixels(); // Read the track before drawing the boat or distance label.
-
-  checkWallCollisions();
-  const boat = population[0];
-  boat.update();
-  boat.draw();
-
-  textSize(30);
-  text(`Test Distance: ${(boat.totalDistance * 0.12).toFixed(2)} meters`,
-       25, height - 300);
-
-  if (!boat.alive) {
-    console.log('Test finished. Distance (canvas pixels):', boat.totalDistance);
-    noLoop();
-  }
-}
-```
-
-### 4. Run and compare
-
-Save `sketch.js` and refresh the page. One boat should run using the saved network, and the simulation should stop when it hits a wall. The **Test Distance** label shows distance travelled using the same `0.12` conversion as the training display. Distance is not a success rate: a boat can accumulate distance by circling, and there is no implemented finish-line stop. To stop a run manually, enter `noLoop()` in the browser console.
-
-Change the track path to `images/tracks/testing2.png` and refresh to repeat with the same model. You can also evaluate `training.png` as a baseline. Record the track, distance, and whether the boat follows the route or gets stuck circling. A good result on the training track does not guarantee a good result on a new track.
-
-The **X** shortcut is for the training workflow; this evaluation does not populate `best`. To train again, restore your saved training version of `sketch.js`, including its original `setup()`, `draw()`, and training image path, then refresh.
-
-## Use your own track image
-
-Copy a PNG into `images/tracks/` and set its path in `preload()`. Start by editing a supplied track so its dimensions, colours, and starting area remain compatible:
-
-- The supplied images are **1003 × 1726** pixels and are drawn at `(0, 0)` at their original size on a **1100 × 2100** canvas. A different size may require changes to the canvas and starting coordinates.
-- Use solid, opaque **RGB `(99, 111, 114)` / `#636f72`** for navigable water. Collision and sensor logic in [sketch.js](sketch.js) and [Boat.js](Boat.js) compares pixel channels directly. For obstacles, choose a colour whose red, green, and blue channels all differ from the corresponding water channels. Avoid JPEG compression, colour filters, and antialiased boundaries that alter these values.
-- With the default canvas, the boat starts at **`(410, 1710)`**, faces left (`angle = 0`), and needs water around its sensor positions. Preserve a usable starting area or adjust `pos`, `s0`, `s1`, `s2`, and `angle` in the `Boat` constructor.
-- Keep the track at its intended pixel scale. Resizing it changes obstacle spacing relative to the boat and sensors. Ordinary photographs are not compatible track maps without preprocessing and changes to the collision logic.
-
-## Troubleshooting
-
-| Symptom | What to check |
+| On-screen label | What it tells you |
 | --- | --- |
-| The canvas does not fit on screen | Zoom out until the full simulation is visible. |
-| X throws an error or downloads nothing | Wait for `Boolean(best)` to be true, focus the page, and check the browser's download permissions. |
-| Model loading fails or returns 404 | Check the browser console and Network tab. Both `bestnetwork/best.json` and the weights file named inside it must be served successfully. |
-| An older model or track still appears | Confirm you replaced the files under the server's repository directory, then hard-refresh or disable cache in developer tools. |
-| Boats disappear and training stops | Very low fitness can leave the mating pool empty, causing generation creation to fail. Refresh to restart with a new random population. This is a current limitation, not a deliberate pause. |
-| A boat dies immediately on a custom image | Check water colour, image placement, and the starting position. |
-| Sensors behave incorrectly on a high-density display | Add `pixelDensity(1)` immediately after `createCanvas()` in the training setup too; the evaluation example already includes it. |
-| Clicking the canvas produces a `checkpoints` error | The current `mousePressed()` handler refers to an uninitialised checkpoint object. Clicking is not needed to train, export, or evaluate. |
+| **Best Distance** | The highest distance recorded among the boats selected during this training session. It updates between rounds. |
+| **Generation** | How many rounds have finished. The first round starts at 0. |
+| **Population** | The number of boats in each round, not the number still moving. |
+| **Mutation Rate** | How often the learned behaviour is allowed to change between rounds. The default is 5%; you can leave it as it is. |
+
+You do not steer the boats yourself. Let several rounds run and watch whether the boats follow more of the route. Progress is not guaranteed to improve every round.
+
+**Refreshing starts a new training session. Save a model before refreshing if you want to keep it.** To finish using the project, close the browser tab and press **Ctrl+C** in the terminal running the server.
+
+## 3. Save the best model
+
+1. Wait until at least one round has finished and **Generation** has increased above 0.
+2. Bring the simulation browser window to the front and press **X** on your keyboard.
+3. If the browser asks to allow multiple downloads, allow them. Two files should download: **`best.json`** and **`best.weights.bin`**.
+4. Keep both files together in a folder for that experiment, for example `Run-01`. Also take a screenshot and note the generation shown when you saved.
+
+Both files are needed to use the model again. Keep their original names, and use a separate folder for each export so you do not mix files from different runs. If your browser adds `(1)` to a filename, remove that suffix when preparing the files for loading.
+
+**“Best” means the boat selected from a completed round.** It may not be the boat that set the highest distance earlier in the session. Save when you see a result you want to keep. A saved model preserves the boat's behaviour; it does not save the whole training session or its results history.
+
+## 4. Load a model and try another route
+
+You can use your own saved model or the example already included in the project's **`bestnetwork`** folder.
+
+1. To use your own model, copy **both** saved files into `bestnetwork`. Keep a separate copy of any files you replace. To try the included example, skip this step.
+2. Follow the [saved-model testing setup](docs/setup-and-technical-help.md#set-up-saved-model-testing), or have the person who installed the project do it for you. **The current app requires a small code setup here; there is no Load button.** Simply copying the files does not switch the app into testing mode.
+3. Choose one of the supplied routes during that setup:
+
+| Route file | Use it for |
+| --- | --- |
+| `training.png` | Check how the saved boat behaves on the route used for learning. |
+| `testing1.png` | Try a different route. |
+| `testing2.png` | Try a second different route. |
+
+After setup, save the changes and refresh the browser. A single boat runs with the saved behaviour, **Test Distance** appears, and the test stops when the boat hits a wall. It does not keep learning during this test. Changing the route also requires the small edit described in the setup guide.
+
+Watch whether the boat follows the route, hits a wall, or keeps circling. There is no automatic finish-line detection or time limit. If it keeps circling, record your observation and close the tab when your chosen observation time is over. Take a screenshot before closing it.
+
+To return to learning with 100 boats, restore the original `sketch.js` file saved during setup and refresh. The **X** shortcut is for saving during training, not during this single-boat test.
+
+## 5. Collect results for a dissertation or report
+
+A useful question to investigate is: **Does behaviour learned on one waterway also work on a different waterway?**
+
+1. **Choose a consistent procedure.** Decide how many training rounds to run before saving a model. Decide how long you will observe each test and what counts as following the route successfully. Record these choices before comparing runs.
+2. **Run separate training experiments.** Refresh to begin each new experiment and give it a name such as `Run-01` or `Run-02`. Starting behaviour varies between training sessions, so report more than one experiment where practical.
+3. **Keep the evidence.** For each experiment, keep both model files, the generation number, screenshots, and notes. You can also use your computer's screen recorder to capture the boat's behaviour.
+4. **Test each saved model on all three supplied routes.** Use the same model and observation rules for each route. Write down the distance and what actually happened. Restarting the same saved model on the same route is a repeat check, not a newly trained model.
+5. **Compare the results.** Use a spreadsheet to compare distances and observations across routes and separately trained models. Include unsuccessful runs as well as promising ones.
+
+Copy this table into your notes or spreadsheet. Add one row per model and test route; the blank row is a template, not a result.
+
+| Run / saved-model folder | Generation when saved | Test route | Test Distance shown | Observation time | Outcome and screenshot filename |
+| --- | --- | --- | --- | --- | --- |
+| … | … | … | … | … | … |
+
+For your report, describe the training and testing procedure, show your results table and selected screenshots, then discuss where the boat performed well or struggled. Record the project version, any changed settings or route images, and the computer/browser used so someone else can understand how you obtained the results.
+
+Keep these points in mind when interpreting results:
+
+- **More distance does not automatically mean better navigation.** A boat can travel a long way while going in circles. Pair the distance with an observation or recording of its route.
+- **The displayed “meters” use a fixed simulation scale.** Describe them as simulated distance; they are not a measurement from a real boat or a surveyed waterway.
+- **Training Best Distance and Test Distance describe different things.** Use the single-boat tests to measure the particular model you saved.
+- **This is a simulation.** Results show behaviour on these track images; they do not establish how a real boat would perform.
+
+The project does not automatically export a results spreadsheet, calculate a success percentage, or produce dissertation text. Record the evidence and calculate any summary measures using your stated criteria.
+
+## Other things you can do
+
+- Try the included saved model before spending time training your own.
+- Compare the same model on the two supplied test routes.
+- Keep several models from different experiments and compare their behaviour.
+- Use a custom waterway image with help from the person setting up the project. Images must follow the [track-image requirements](docs/setup-and-technical-help.md#use-your-own-track-image); an ordinary photograph will not work as a route.
+
+## If something goes wrong
+
+| Problem | What to try |
+| --- | --- |
+| The page will not open | Keep the server terminal open and use `http://localhost:8000`. If Python is missing, ask the person setting up the project to install it. |
+| The waterway is too large for the screen | Zoom out in the browser. |
+| X does not save anything | Wait for a round to finish, make sure the browser window is active, and check whether downloads were blocked. |
+| Only one model file downloaded | Check your browser's downloads list and allow multiple downloads, then save again. You need both files from the same export. |
+| The boats disappear and no new round begins | Refresh to start again. Some initial populations fail to produce a usable next round. |
+| Loading a model does not work | Check that both files are in `bestnetwork`, with their original names, and that the testing setup was completed. |
+
+For setup issues, see [Loading setup and technical help](docs/setup-and-technical-help.md).
