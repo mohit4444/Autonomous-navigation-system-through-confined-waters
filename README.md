@@ -19,30 +19,23 @@
 For Python 3.x:
 Open a terminal or command prompt.
 Navigate to the directory containing index.html file.
-Run the command: python -m http.server
+Run the command: `python -m http.server`
 Open your web browser and go to http://localhost:8000. </li>
 
 For Python 2.x:
 Open a terminal or command prompt.
 Navigate to the directory containing index.html file.
-Run the command: python -m SimpleHTTPServer
+Run the command: `python -m SimpleHTTPServer`
 Open your web browser and go to http://localhost:8000.
 
 <li>2. Using Node.js with http-server:
    If you have Node.js and npm installed:
 
-Install http-server globally with: npm install -g http-server
+Install http-server globally with: `npm install -g http-server`
 Navigate to the directory containing index.html file in the terminal or command prompt.
-Run the command: http-server
+Run the command: `http-server`
 Open your web browser and go to the address provided, usually http://localhost:8080. </li>
 
-<li>3. Using Visual Studio Code with "Live Server" Extension:
-   If you use Visual Studio Code as your code editor:
-
-Install the "Live Server" extension from the VS Code marketplace.
-Open the project code in VS Code.
-Right-click on the index.html file and select "Open with Live Server".
-Your default browser will automatically open and display the index.html file. </li>
 
 </ul>
 </ul>
