@@ -28,45 +28,15 @@ Copy both saved files into **`bestnetwork/`**, replacing the existing pair after
 
 Make these two edits in **`sketch.js`**:
 
-**1. In `preload()`, change the track line:**
+**1. In `preload()`, change the track line to whichever track you want:**
 
 ```js
 track = loadImage('images/tracks/testing1.png');
 ```
 
-**2. Replace the active `setup()` and `draw()` functions with these.** Leave the old commented-out example disabled and keep the rest of the file unchanged.
+**2. Uncomment the commented setup() function to load the best neural network and comment the setup function above it.
 
-```js
-async function setup() {
-  createCanvas(1100, 2100);
-  pixelDensity(1);
-  noLoop();
-  await tf.setBackend('cpu');
-  const model = await tf.loadLayersModel('bestnetwork/best.json');
-  const boat = new Boat();
-  boat.brain.model.dispose();
-  boat.brain.model = model;
-  population = [boat];
-  loop();
-}
-
-function draw() {
-  if (population.length === 0) return;
-  background(147, 204, 76);
-  image(track, 0, 0);
-  loadPixels();
-  checkWallCollisions();
-  const boat = population[0];
-  boat.update();
-  boat.draw();
-  textSize(30);
-  text(`Test Distance: ${(boat.totalDistance * 0.12).toFixed(2)} meters`,
-       25, height - 300);
-  if (!boat.alive) noLoop();
-}
-```
-
-Save the file and refresh. Repeat with `testing2.png`, or use `training.png` for comparison.
+Save this and restart the server.
 
 To train again, restore your original `sketch.js` and refresh. **X** saves models during training only.
 
