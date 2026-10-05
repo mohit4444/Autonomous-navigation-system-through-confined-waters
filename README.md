@@ -1,6 +1,6 @@
 # Autonomous navigation through confined waters
 
-Train simulated boats to navigate a waterway, save their learned behaviour as a **model**, and test it on another route.
+Train simulated boats to navigate a waterway, save their learned behaviour as a **model**, and test it on a new route.
 
 ## Run
 
@@ -13,21 +13,20 @@ python3 -m http.server 8000
 
 On Windows, use `py -m http.server 8000` if needed. Open [localhost:8000](http://localhost:8000), keep the terminal open, and stay connected to the internet.
 
-Training starts automatically with 100 boats. **Generation** counts completed rounds; **Best Distance** shows the highest recorded distance among selected boats. Zoom out to see the full track. Refreshing starts training again, so save first.
+Training starts automatically with 100 boats on the training track. **Generation** counts completed rounds; **Best Distance** shows the highest recorded distance among selected boats. Zoom out to see the full track. Refreshing starts training again.
+If the boats keep circling,refresh.
 
 ## Save the best model
 
-1. Wait until **Generation** is above 0, then press **X** with the simulation window active.
+1. When the boats are covering substantial distance on the training track, then press **X** with the simulation window active.
 2. Allow multiple downloads if prompted. Keep **`best.json`** and **`best.weights.bin`** together, with their original filenames.
-3. Store each saved pair in its own folder, such as `Run-01`.
 
-This saves the boat selected from a completed round, which may differ from the all-time distance record holder. It does not save the whole training session.
 
 ## Load a model and test another route
 
 Copy both saved files into **`bestnetwork/`**, replacing the existing pair after backing it up. Or use the example model already there.
 
-Back up **`sketch.js`**, then make these two edits in a text editor:
+Make these two edits in **`sketch.js`**:
 
 **1. In `preload()`, change the track line:**
 
@@ -67,15 +66,8 @@ function draw() {
 }
 ```
 
-Save the file and refresh. One boat runs without further learning and stops on collision. Repeat with `testing2.png`, or use `training.png` for comparison. If it keeps circling, take your screenshot and close the tab; there is no automatic time limit or finish-line stop.
+Save the file and refresh. Repeat with `testing2.png`, or use `training.png` for comparison.
 
 To train again, restore your original `sketch.js` and refresh. **X** saves models during training only.
-
-## Use the results in a dissertation
-
-- Train several models for the same number of generations. Keep each model's two files and note the generation when saved.
-- Test each model on all three routes for the same observation period. Record **Test Distance**, whether it follows the route or circles, and a screenshot or screen recording.
-- Present a table: **Run | Generation saved | Route | Test distance | Observation time | Outcome**. Include the project version and any changed settings in your method.
-- Compare successful and unsuccessful runs. More distance can mean circling, and the displayed meters are simulated units—not real-world measurements. Results must be recorded manually.
 
 **Quick fixes:** If training stops with no boats visible, refresh. If saving fails, wait for a completed round and check download permissions. If loading fails, check that both model files have their original names and came from the same export.
